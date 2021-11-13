@@ -10,7 +10,6 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs: 
-  
   Linux-x64:
     runs-on: ubuntu-latest
     steps:
@@ -27,6 +26,13 @@ jobs:
       with:
         name: asterism-linux-x64
         path: ${{ github.workspace }}/build/
+    - name: Upload release asset
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ github.workspace }}/build/nbtscan
+        tag: nbtscan-linux-x64
+        file_glob: true
   Linux-2-windows-mingw-w64:
     runs-on: ubuntu-latest
     steps:
@@ -48,7 +54,13 @@ jobs:
       with:
         name: asterism-windows-x64
         path: ${{ github.workspace }}/build/
-        
+    - name: Upload release asset
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ github.workspace }}/build/nbtscan.exe
+        tag: nbtscan-windows-x64
+        file_glob: true 
   Linux-2-Android:
     runs-on: ubuntu-latest
     steps:
@@ -74,19 +86,10 @@ jobs:
       with:
         name: asterism-android-x64
         path: ${{ github.workspace }}/build/
-  
-  MacOS:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: build
-      run: |
-        mkdir build && cd build
-        cmake \
-          -DCMAKE_BUILD_TYPE=Release ..
-        cmake --build .
-    - name: Upload GitHub Actions artifact of cmake-clang build
-      uses: actions/upload-artifact@v2
+    - name: Upload release asset
+      uses: svenstaro/upload-release-action@v2
       with:
-        name: asterism-MacOS-x64
-        path: ${{ github.workspace }}/build/
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ github.workspace }}/build/nbtscan
+        tag: nbtscan-android-x64
+        file_glob: true
