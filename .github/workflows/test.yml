@@ -1,0 +1,92 @@
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs: 
+  
+  Linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: 'build'
+      run: |
+        mkdir build && cd build
+        cmake \
+          -DCMAKE_BUILD_TYPE=Release ..
+        cmake --build .
+    - name: Upload GitHub Actions artifact of Linux-x64 build
+      uses: actions/upload-artifact@v2
+      with:
+        name: asterism-linux-x64
+        path: ${{ github.workspace }}/build/
+  Linux-2-windows-mingw-w64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: 'install-mingw-w64'
+      run: |
+        sudo -E apt-get update
+        sudo -E apt-get -y install mingw-w64
+    - name: 'build'
+      run: |
+        mkdir build && cd build
+        cmake \
+          -DCMAKE_SYSTEM_NAME=Windows \
+          -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
+          -DCMAKE_BUILD_TYPE=Release ..
+        cmake --build .
+    - name: Upload GitHub Actions artifact of cmake-mingw-w64 build
+      uses: actions/upload-artifact@v2
+      with:
+        name: asterism-windows-x64
+        path: ${{ github.workspace }}/build/
+        
+  Linux-2-Android:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Android NDK R21e
+      uses: nttld/setup-ndk@v1
+      id: setup-ndk
+      with:
+        ndk-version: r21e
+        add-to-path: false
+    - uses: actions/checkout@v2
+      
+    - name: build
+      run: |
+        mkdir build && cd build
+        echo ${{ steps.setup-ndk.outputs.ndk-path }}
+        cmake \
+          -DCMAKE_TOOLCHAIN_FILE=${{ steps.setup-ndk.outputs.ndk-path }}/build/cmake/android.toolchain.cmake \
+          -DANDROID_NATIVE_API_LEVEL=21 \
+          -DANDROID_ABI=armeabi-v7a -DCMAKE_BUILD_TYPE=Release ..
+        cmake --build .
+    - name: Upload GitHub Actions artifact of cmake-ndk build
+      uses: actions/upload-artifact@v2
+      with:
+        name: asterism-android-x64
+        path: ${{ github.workspace }}/build/
+  
+  MacOS:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: build
+      run: |
+        mkdir build && cd build
+        cmake \
+          -DCMAKE_BUILD_TYPE=Release ..
+        cmake --build .
+    - name: Upload GitHub Actions artifact of cmake-clang build
+      uses: actions/upload-artifact@v2
+      with:
+        name: asterism-MacOS-x64
+        path: ${{ github.workspace }}/build/
